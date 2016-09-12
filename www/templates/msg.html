@@ -1,0 +1,24 @@
+﻿<ion-view view-title="Mensagens">
+    <ion-content class="padding">
+
+    </ion-content>
+    
+    <ion-footer-bar keyboard-attach class="bar-stable footer-chat item-input-inset">
+        <label class="item-input-wrapper">
+            <input ng-model="data.message"
+                   on-return="sendMessage()"
+                   on-focus="inputUp()"
+                   on-blur="inputDown()"
+                   dir="auto"
+                   type="text" />
+        </label>
+        <span ng-if="data.message.length > 0">
+            <button ng-click="sendMessage()" class="button button-clear button-positive ion-android-send"></button>
+        </span>
+        <span ng-if="!data.message || data.message.length === 0">
+            <button class="button button-clear button-icon button-positive icon ion-ios7-camera-outline"></button>
+        </span>
+    </ion-footer-bar>
+</ion-view>
+
+
