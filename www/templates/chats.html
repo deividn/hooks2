@@ -1,10 +1,9 @@
 <ion-view view-title="Chats">
   <ion-content>
     <ion-list>
-      <ion-item ng-repeat="chat in chats" class="item-avatar" href="#/app/chat/{{chat.id}}">
+      <ion-item ng-repeat="chat in chats |  filter : { id : '' }"" class="item-avatar" href="#/app/chat/{{chat.id}}">
           <img ng-src="{{chat.face}}">
-
-        {{chat.name}}
+            {{chat.name}}
       </ion-item>
     </ion-list>
   </ion-content>

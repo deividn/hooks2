@@ -37,7 +37,7 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 
 
    .state('app.msg', {
-     url: '/msg',
+     url: '/msg/:chatId',
      views: {
               'menuContent': {
                   templateUrl: 'templates/msg.html',

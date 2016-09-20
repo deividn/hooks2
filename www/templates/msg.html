@@ -1,7 +1,21 @@
 ﻿<ion-view view-title="Mensagens">
-    <ion-content class="padding">
+    
+        <ion-view view-title="{{chat.name}}">
+            <ion-content class="padding" overflow-scroll="true">
+                
+                    <img ng-src="{{chat.face}}" style="width: 64px; height: 64px">
+                    <ion-list>
+                        <ion-item class="item-remove-animate item-text-wrap item-avatar item-right" ng-repeat="msg in chat.messages" ng-class="$even ? 'item-stable' : ''" type="item-text-wrap">
+                            <img ng-src="{{msg.face}}">
+                            <p><span ng-class="$even ? 'royal':'balanced'"><time>{{msg.date}}</time></span></p>
+                            <p><span ng-class="$even ? 'royal':'balanced'">{{msg.name}}:</span></p>
+                            <h2><span ng-class="$even ? 'royal':'balanced'">{{msg.msg}}</span></h2>
+                        </ion-item>
+                    </ion-list>
+            </ion-content>
+        </ion-view>
 
-    </ion-content>
+    
     
     <ion-footer-bar keyboard-attach class="bar-stable footer-chat item-input-inset">
         <label class="item-input-wrapper">

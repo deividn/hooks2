@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-.controller('AppCtrl', function($scope, $ionicModal, $timeout) {
+.controller('AppCtrl', function ($scope, $ionicPopup, $ionicModal, $timeout) {
 
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -31,33 +31,87 @@ angular.module('starter.controllers', [])
 
   // Perform the login action when the user submits the login form
   $scope.doLogin = function() {
-    console.log('Doing login', $scope.loginData);
+    
+      firebase.auth().signInWithEmailAndPassword($scope.loginData.username, $scope.loginData.password).catch(function (error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+
+          // [START_EXCLUDE]
+          if (errorCode === 'auth/wrong-password') {
+              errorMessage  = 'Senha Incorreta.';
+          } 
+
+          
+          $ionicPopup.alert({
+              title: 'Falha no Login',
+              template: errorMessage
+          });
 
 
-    firebase.auth().signInWithEmailAndPassword($scope.loginData.username, $scope.loginData.password).catch(function (error) {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // [START_EXCLUDE]
-        if (errorCode === 'auth/wrong-password') {
-            console.log('Wrong password.');
-        } else {
-            console.log(errorMessage);
-        }
-        console.log(error);
-        
-    })
+      });
 
+      firebase.auth().onAuthStateChanged(function (user) {
+          if (user) {
+             $scope.closeLogin();
+          }
+      });
 
   };
+
+  $scope.$on('$destroy', function () {
+      $scope.modal.remove();
+  });
+    
+  
+
+  if (!localStorage.getItem("popupWasShown")) {
+
+      $timeout(function () {
+          $scope.login();
+      });
+
+      //$scope.login();
+      localStorage.setItem("popupWasShown", true);
+  }
+
+
+
 })
 
-.controller('MsgCtrl', function ($scope,Chats) {
+.controller('MsgCtrl', function ($scope, $stateParams, Chats) {
+
+    Chats.get($stateParams.chatId, function (ret_chat) { $scope.chat = ret_chat });
 
     $scope.sendMessage = function () {
-        Chats.send(0, firebase.auth().currentUser.uid, firebase.auth().currentUser.email, $scope.data.message);
-        
+        Chats.sendMessage($stateParams.chatId, firebase.auth().currentUser.uid, firebase.auth().currentUser.email, $scope.data.message);
+        $scope.data.message = '';
     };
+
+    var commentsRef = firebase.database().ref('chats/' + $stateParams.chatId);
+    commentsRef.on('child_changed', function (data) {
+        var result = data.val();
+
+
+        result.forEach(function (e) {
+            var exist = false;
+            $scope.chat.messages.forEach(function (valor) {
+                if (valor.itemid == e.itemid)
+                    exist = true;
+
+            });
+            if (!exist) {
+                $scope.chat.messages.push(e);
+            }
+        });
+
+        //$scope.chat.messages = result;
+        $scope.$apply();
+
+    });
+
+
+
     
 
 })
@@ -71,28 +125,70 @@ angular.module('starter.controllers', [])
         //
         //$scope.$on('$ionicView.enter', function(e) {
         //});
+    
+    firebase.auth().onAuthStateChanged(function (user) {
+        if (user){
+            Chats.all(function (ret) {
+                $scope.chats = ret;
+            });
 
-    firebase.database().ref().update(Chats.all());
+            
 
-        $scope.chats = Chats.all();
-        $scope.remove = function (chat) {
-            Chats.remove(chat);
-        };
+        }
+
+
+
+    });
+
+
+    
     })
 
 
     
 
 
-.controller('ChatDetailCtrl', function ($scope, $stateParams, Chats) {
-
-    var messages = firebase.database().ref('chats/' + $stateParams.chatId + '/messages')
-
+.controller('ChatDetailCtrl', function ($scope, $stateParams,Chats) {
     
+    firebase.auth().onAuthStateChanged(function (user) {
+
+        if (user) {
+            Chats.get($stateParams.chatId, function (ret_chat) { $scope.chat = ret_chat;  });
+        }
+
+        var commentsRef = firebase.database().ref('chats/' + $stateParams.chatId);
+      
+        commentsRef.on('child_changed', function (data) {
+            var result = data.val();
+            
+
+            result.forEach(function (e) {
+                var exist = false;
+                $scope.chat.messages.forEach(function (valor) {
+                    if (valor.itemid == e.itemid)
+                        exist = true;
+
+                });
+                if (!exist) {
+                    $scope.chat.messages.push(e);
+                }
+            });
+
+            //$scope.chat.messages = result;
+            $scope.$apply();
+            
+        });
+
+        commentsRef.on('child_removed', function (data) {
+            var result = data.val();
+            $scope.chat.messages = result;
+            $scope.$apply();
+
+        });
 
 
-  
-
-    $scope.chat = Chats.get($stateParams.chatId);
+    });
+        
+    
 })
 
